@@ -59,39 +59,169 @@
     .hidden {
       display: none;
     }
+
+    /* Styles for tab navigation */
+    .tab-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 8px;
+    }
+    .tab-button {
+      padding: 10px 20px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .tab-button.active {
+      background-color: #007bff;
+      color: #fff;
+      border-color: #007bff;
+    }
+
+    /* Calendar styles */
+    #calendar-section {
+      display: none; /* hide by default; toggled via JS */
+    }
+    .calendar-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .calendar-nav button {
+      padding: 6px 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .calendar-nav button:hover {
+      background-color: #0056b3;
+    }
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .calendar-table th,
+    .calendar-table td {
+      border: 1px solid #ccc;
+      width: 14.28%;
+      height: 80px;
+      vertical-align: top;
+      padding: 4px;
+    }
+    .calendar-table th {
+      background-color: #f0f0f0;
+    }
+    .calendar-event {
+      display: block;
+      margin: 2px 0;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #007bff;
+      text-decoration: underline;
+      background-color: transparent;
+    }
+    .calendar-day-number {
+      font-weight: bold;
+    }
+
+    /* Custom autocomplete styles for suggestions list */
+    .autocomplete {
+      position: relative;
+    }
+    .autocomplete-items {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      border: 1px solid #ccc;
+      border-top: none;
+      background-color: #fff;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 1000;
+      border-radius: 0 0 4px 4px;
+    }
+    .autocomplete-item {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .autocomplete-item:hover {
+      background-color: #f0f0f0;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>ตรวจสอบวันที่รับสินค้า</h1>
-    <p style="text-align:center;">กรุณากรอกข้อมูลสินค้าของคุณเพื่อค้นหาวันที่รับสินค้า</p>
-    <form id="search-form" onsubmit="return false;">
-      <label for="product-code">รหัสสินค้า</label>
-      <input type="text" id="product-code" list="product-code-list" placeholder="เช่น CAS-100104" />
+    <!-- Tab navigation -->
+    <div class="tab-container">
+      <button class="tab-button active" id="search-tab">ค้นหา</button>
+      <button class="tab-button" id="calendar-tab">ปฏิทิน</button>
+    </div>
 
-      <label for="product-name">ชื่อสินค้า</label>
-      <input type="text" id="product-name" list="product-name-list" placeholder="เช่น Ring 6 MM" />
+    <!-- Search section -->
+    <div id="search-section">
+      <p style="text-align:center;">กรุณากรอกข้อมูลสินค้าของคุณเพื่อค้นหาวันที่รับสินค้า</p>
+      <form id="search-form" onsubmit="return false;">
+        <label for="product-code">รหัสสินค้า</label>
+        <!-- Use custom autocomplete container instead of datalist -->
+        <div class="autocomplete">
+          <input type="text" id="product-code" placeholder="เช่น CAS-100104" autocomplete="off" />
+          <div class="autocomplete-items" id="product-code-suggestions"></div>
+        </div>
 
-      <label for="document-code">รหัสเอกสารสั่งซื้อ</label>
-      <input type="text" id="document-code" placeholder="เช่น PO-987" />
+        <label for="product-name">ชื่อสินค้า</label>
+        <!-- Use custom autocomplete container instead of datalist -->
+        <div class="autocomplete">
+          <input type="text" id="product-name" placeholder="เช่น Ring 6 MM" autocomplete="off" />
+          <div class="autocomplete-items" id="product-name-suggestions"></div>
+        </div>
 
-      <button type="button" onclick="searchProduct()">ค้นหา</button>
-    </form>
-    <!-- datalist สำหรับ autofill -->
-    <datalist id="product-code-list"></datalist>
-    <datalist id="product-name-list"></datalist>
-    <div id="result" class="hidden"></div>
+        <label for="document-code">รหัสเอกสารสั่งซื้อ</label>
+        <input type="text" id="document-code" placeholder="เช่น PO-987" />
+
+        <button type="button" onclick="searchProduct()">ค้นหา</button>
+      </form>
+      <!-- Container to display search results -->
+      <div id="result" class="hidden"></div>
+    </div>
+
+    <!-- Calendar section -->
+    <div id="calendar-section">
+      <div class="calendar-nav">
+        <button id="prev-month">ก่อนหน้า</button>
+        <div id="month-year-title"></div>
+        <button id="next-month">ถัดไป</button>
+      </div>
+      <table class="calendar-table">
+        <thead>
+          <tr>
+            <th>อา</th>
+            <th>จ</th>
+            <th>อ</th>
+            <th>พ</th>
+            <th>พฤ</th>
+            <th>ศ</th>
+            <th>ส</th>
+          </tr>
+        </thead>
+        <tbody id="calendar-body"></tbody>
+      </table>
+      <!-- Details of events on selected date -->
+      <div id="events-list" style="margin-top: 20px;"></div>
+    </div>
   </div>
 
   <script>
-    /**
-     * คำสั่งนี้เป็นเพียงตัวอย่างสำหรับการเชื่อมต่อกับข้อมูลใน Google Sheet.
-     * ในการใช้งานจริง คุณจะต้องแก้ไขฟังก์ชัน fetchData() ให้ดึงข้อมูลจาก Google Sheet
-     * ผ่านทาง API หรือบริการอื่น ๆ ที่เหมาะสม
-     */
-
-    // ข้อมูลจาก Google Sheet "สินค้าค้างรับ"
-    // แต่ละรายการประกอบด้วย: รหัสสินค้า, ชื่อสินค้า, วันที่รับ/ส่ง (ปีพุทธศักราช), และเลขที่ PO
+    // ข้อมูลจาก Google Sheet "สินค้าค้างรับ" (ตัวอย่าง)
     const sheetData = [
       { productCode: 'CAS-100104', productName: 'Ring 6 MM # 100104 (L)', receiveDate: '2568-12-12 00:00:00', documentCode: 'POS-1234' },
       { productCode: 'CAS-100105', productName: 'Ring 8 MM # 100105 (L)', receiveDate: '2568-12-13 00:00:00', documentCode: 'POS-1235' },
@@ -108,13 +238,12 @@
       { productCode: 'CAS-605008', productName: 'ADJ EQUAL TEE 15L #605008', receiveDate: '2568-12-24 00:00:00', documentCode: 'POS-1246' }
     ];
 
-    // ฟังก์ชันสำหรับค้นหาข้อมูลจาก sheetData
+    // ค้นหารายการสินค้า
     function searchProduct() {
       const code = document.getElementById('product-code').value.trim();
       const name = document.getElementById('product-name').value.trim();
       const doc = document.getElementById('document-code').value.trim();
 
-      // ตัวกรองข้อมูล โดยตรวจสอบตามเงื่อนไขที่ผู้ใช้กรอก
       const result = sheetData.find((item) => {
         const matchCode = code ? item.productCode.toLowerCase() === code.toLowerCase() : true;
         const matchName = name ? item.productName.toLowerCase().includes(name.toLowerCase()) : true;
@@ -138,35 +267,57 @@
       }
     }
 
-    // ฟังก์ชันสำหรับแปลงรูปแบบวันที่จากปีพุทธศักราช (พ.ศ.) เป็นแบบ ก/ด/ป (ค.ศ.)
+    // แปลงวันที่ พ.ศ. เป็น ค.ศ.
     function formatBuddhistDate(dateString) {
-      // dateString มีรูปแบบ "YYYY-MM-DD HH:mm:ss" โดย YYYY เป็นปี พ.ศ.
       const parts = dateString.split(' ')[0].split('-');
       let year = parseInt(parts[0], 10);
       const month = parts[1];
       const day = parts[2];
-      // แปลงปี พ.ศ. เป็น ค.ศ. โดยลบ 543 ปี
       year = year - 543;
       return `${day}/${month}/${year}`;
     }
 
-    // เติม datalist ของรหัสสินค้าและชื่อสินค้าเพื่อให้เลือกแบบอัตโนมัติ
+    // ระบบแนะนำอัตโนมัติสำหรับช่องรหัสและชื่อสินค้า
     window.addEventListener('DOMContentLoaded', () => {
-      const codeList = document.getElementById('product-code-list');
-      const nameList = document.getElementById('product-name-list');
-      // สร้างรายการรหัสสินค้าไม่ซ้ำ
       const uniqueCodes = [...new Set(sheetData.map(item => item.productCode))];
-      uniqueCodes.forEach(code => {
-        const option = document.createElement('option');
-        option.value = code;
-        codeList.appendChild(option);
-      });
-      // สร้างรายการชื่อสินค้าไม่ซ้ำ
       const uniqueNames = [...new Set(sheetData.map(item => item.productName))];
-      uniqueNames.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        nameList.appendChild(option);
+
+      function showSuggestions(inputElem, listElem, listData) {
+        const value = inputElem.value.trim().toLowerCase();
+        listElem.innerHTML = '';
+        if (!value) {
+          listElem.style.display = 'none';
+          return;
+        }
+        const matches = listData.filter(item => item.toLowerCase().includes(value));
+        matches.forEach(item => {
+          const div = document.createElement('div');
+          div.textContent = item;
+          div.className = 'autocomplete-item';
+          div.addEventListener('click', () => {
+            inputElem.value = item;
+            listElem.innerHTML = '';
+            listElem.style.display = 'none';
+          });
+          listElem.appendChild(div);
+        });
+        listElem.style.display = matches.length > 0 ? 'block' : 'none';
+      }
+
+      const codeInput = document.getElementById('product-code');
+      const nameInput = document.getElementById('product-name');
+      const codeSuggestions = document.getElementById('product-code-suggestions');
+      const nameSuggestions = document.getElementById('product-name-suggestions');
+      codeInput.addEventListener('input', () => showSuggestions(codeInput, codeSuggestions, uniqueCodes));
+      nameInput.addEventListener('input', () => showSuggestions(nameInput, nameSuggestions, uniqueNames));
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.autocomplete')) {
+          codeSuggestions.innerHTML = '';
+          codeSuggestions.style.display = 'none';
+          nameSuggestions.innerHTML = '';
+          nameSuggestions.style.display = 'none';
+        }
       });
     });
 
@@ -175,6 +326,143 @@
       const [year, month, day] = dateString.split('-');
       return `${day}/${month}/${year}`;
     }
+
+    /*** ส่วนด้านปฏิทิน ***/
+
+    // สร้างแผนที่วัน-รายการสินค้า
+    function buildEventsMap(data) {
+      const events = {};
+      data.forEach(item => {
+        const datePart = item.receiveDate.split(' ')[0];
+        const [bYear, month, day] = datePart.split('-');
+        const gYear = parseInt(bYear, 10) - 543;
+        const key = `${gYear}-${month}-${day}`;
+        if (!events[key]) events[key] = [];
+        events[key].push(item);
+      });
+      return events;
+    }
+
+    const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    const eventsMap = buildEventsMap(sheetData);
+
+    function renderCalendar() {
+      const calendarBody = document.getElementById('calendar-body');
+      calendarBody.innerHTML = '';
+      const firstDay = new Date(currentYear, currentMonth, 1);
+      const startingDay = firstDay.getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      const monthYearTitle = document.getElementById('month-year-title');
+      const buddhistYear = currentYear + 543;
+      monthYearTitle.textContent = `${thaiMonths[currentMonth]} ${buddhistYear}`;
+
+      let date = 1;
+      for (let i = 0; i < 6; i++) {
+        const row = document.createElement('tr');
+        for (let j = 0; j < 7; j++) {
+          const cell = document.createElement('td');
+          if (i === 0 && j < startingDay) {
+            cell.textContent = '';
+          } else if (date > daysInMonth) {
+            cell.textContent = '';
+          } else {
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'calendar-day-number';
+            dayNumber.textContent = date;
+            cell.appendChild(dayNumber);
+
+            const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+            if (eventsMap[dateKey]) {
+              eventsMap[dateKey].forEach(evt => {
+                const eventElem = document.createElement('a');
+                eventElem.className = 'calendar-event';
+                eventElem.href = '#';
+                eventElem.textContent = evt.productCode;
+                eventElem.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showEventDetails(dateKey);
+                });
+                cell.appendChild(eventElem);
+              });
+            }
+            cell.addEventListener('click', () => {
+              showEventDetails(dateKey);
+            });
+            date++;
+          }
+          row.appendChild(cell);
+        }
+        calendarBody.appendChild(row);
+        if (date > daysInMonth) break;
+      }
+    }
+
+    function showEventDetails(dateKey) {
+      const eventsList = document.getElementById('events-list');
+      eventsList.innerHTML = '';
+      if (eventsMap[dateKey]) {
+        const [year, month, day] = dateKey.split('-');
+        const buddhistYear = parseInt(year, 10) + 543;
+        const heading = document.createElement('h3');
+        heading.textContent = `รายการรับสินค้าวันที่ ${parseInt(day, 10)}/${month}/${buddhistYear}`;
+        eventsList.appendChild(heading);
+        const list = document.createElement('ul');
+        eventsMap[dateKey].forEach(evt => {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>รหัสสินค้า:</strong> ${evt.productCode} <br> <strong>ชื่อสินค้า:</strong> ${evt.productName} <br> <strong>เลขที่เอกสาร:</strong> ${evt.documentCode}`;
+          list.appendChild(li);
+        });
+        eventsList.appendChild(list);
+      } else {
+        eventsList.textContent = 'ไม่มีข้อมูลสินค้าที่รับในวันนี้';
+      }
+    }
+
+    function prevMonth() {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    }
+
+    function nextMonth() {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar();
+    }
+
+    // ตั้งค่าแท็บและปุ่มเลื่อนเดือน
+    window.addEventListener('DOMContentLoaded', () => {
+      const searchTab = document.getElementById('search-tab');
+      const calendarTab = document.getElementById('calendar-tab');
+      const searchSection = document.getElementById('search-section');
+      const calendarSection = document.getElementById('calendar-section');
+      searchTab.addEventListener('click', () => {
+        searchTab.classList.add('active');
+        calendarTab.classList.remove('active');
+        searchSection.style.display = 'block';
+        calendarSection.style.display = 'none';
+      });
+      calendarTab.addEventListener('click', () => {
+        calendarTab.classList.add('active');
+        searchTab.classList.remove('active');
+        searchSection.style.display = 'none';
+        calendarSection.style.display = 'block';
+        renderCalendar();
+      });
+      document.getElementById('prev-month').addEventListener('click', prevMonth);
+      document.getElementById('next-month').addEventListener('click', nextMonth);
+    });
   </script>
 </body>
 </html>
