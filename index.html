@@ -7,17 +7,19 @@
   <style>
     body {
       font-family: sans-serif;
-      background-color: #f5f5f5;
+      background-color: #f0f4f8; /* light grey-blue background */
       margin: 0;
       padding: 0;
     }
     .container {
       max-width: 600px;
       margin: 40px auto;
-      background-color: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      padding: 24px;
+      background-color: #ffffff;
+      /* subtle border and shadow for card effect */
+      border: 1px solid #e3e6eb;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      padding: 24px 32px;
     }
     h1 {
       text-align: center;
@@ -33,18 +35,26 @@
     }
     input[type="text"] {
       padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      border: 1px solid #d0d7e4;
+      border-radius: 6px;
       font-size: 16px;
+      background-color: #f9fbfd;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #007bff;
+      background-color: #ffffff;
     }
     button {
       padding: 10px;
       background-color: #007bff;
-      color: white;
+      color: #ffffff;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 16px;
+      transition: background-color 0.2s;
     }
     button:hover {
       background-color: #0056b3;
@@ -68,16 +78,47 @@
       gap: 8px;
     }
     .tab-button {
-      padding: 10px 20px;
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 10px 24px;
+      background-color: #e9f1f7;
+      border: 1px solid #d0d7e4;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 16px;
+      color: #0d6efd;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .tab-button:hover {
+      background-color: #dfe9f1;
     }
     .tab-button.active {
       background-color: #007bff;
-      color: #fff;
+      color: #ffffff;
+      border-color: #007bff;
+    }
+
+    /* Main tab styles for primary pages */
+    .main-tab-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 8px;
+    }
+    .main-tab-button {
+      padding: 10px 24px;
+      background-color: #e9f1f7;
+      border: 1px solid #d0d7e4;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      color: #0d6efd;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .main-tab-button:hover {
+      background-color: #dfe9f1;
+    }
+    .main-tab-button.active {
+      background-color: #007bff;
+      color: #ffffff;
       border-color: #007bff;
     }
 
@@ -92,12 +133,14 @@
       margin-bottom: 10px;
     }
     .calendar-nav button {
-      padding: 6px 12px;
+      padding: 6px 14px;
       background-color: #007bff;
-      color: white;
+      color: #ffffff;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
     }
     .calendar-nav button:hover {
       background-color: #0056b3;
@@ -115,18 +158,22 @@
       padding: 4px;
     }
     .calendar-table th {
-      background-color: #f0f0f0;
+      background-color: #e9f1f7;
     }
     .calendar-event {
       display: block;
       margin: 2px 0;
       padding: 2px 4px;
-      border-radius: 3px;
+      border-radius: 4px;
       font-size: 12px;
       cursor: pointer;
-      color: #007bff;
+      color: #0056b3;
       text-decoration: underline;
       background-color: transparent;
+      transition: background-color 0.2s;
+    }
+    .calendar-event:hover {
+      background-color: #e2eaf4;
     }
     .calendar-day-number {
       font-weight: bold;
@@ -141,20 +188,21 @@
       top: 100%;
       left: 0;
       right: 0;
-      border: 1px solid #ccc;
+      border: 1px solid #d0d7e4;
       border-top: none;
-      background-color: #fff;
+      background-color: #ffffff;
       max-height: 180px;
       overflow-y: auto;
       z-index: 1000;
-      border-radius: 0 0 4px 4px;
+      border-radius: 0 0 6px 6px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     }
     .autocomplete-item {
       padding: 8px;
       cursor: pointer;
     }
     .autocomplete-item:hover {
-      background-color: #f0f0f0;
+      background-color: #f1f5fb;
     }
 
     /* Table for search results */
@@ -170,7 +218,7 @@
       text-align: left;
     }
     .result-table th {
-      background-color: #f0f0f0;
+      background-color: #e9f1f7;
     }
 
     /* Layout for paired fields */
@@ -186,90 +234,104 @@
 </head>
 <body>
   <div class="container">
-    <h1>ตรวจสอบวันที่รับสินค้า</h1>
-    <!-- Tab navigation -->
-    <div class="tab-container">
-      <button class="tab-button active" id="search-tab">ค้นหา</button>
-      <button class="tab-button" id="calendar-tab">ปฏิทิน</button>
+    <!-- Updated heading to reflect Sritong Stock branding -->
+    <h1>Sritong Stock</h1>
+    <!-- Main tab navigation for primary pages -->
+    <div class="main-tab-container">
+      <button class="main-tab-button active" id="main-search-tab">ค้นหาวันที่รับสินค้า</button>
+      <button class="main-tab-button" id="main-order-tab">จุดสั่งซื้อ</button>
     </div>
-
-    <!-- Search section -->
-    <div id="search-section">
-      <p style="text-align:center;">กรุณากรอกข้อมูลสินค้าของคุณเพื่อค้นหาวันที่รับสินค้า</p>
-      <form id="search-form" onsubmit="return false;">
-        <!-- Row 1: product code range -->
-        <div class="flex-row">
-          <div class="flex-item">
-            <label for="start-code">จากรหัสสินค้า</label>
-            <div class="autocomplete">
-              <input type="text" id="start-code" placeholder="เช่น CAS-100104" autocomplete="off" />
-              <div class="autocomplete-items" id="start-code-suggestions"></div>
-            </div>
-          </div>
-          <div class="flex-item">
-            <label for="end-code">ถึงรหัสสินค้า</label>
-            <div class="autocomplete">
-              <input type="text" id="end-code" placeholder="เช่น CAS-100105" autocomplete="off" />
-              <div class="autocomplete-items" id="end-code-suggestions"></div>
-            </div>
-          </div>
-        </div>
-        <!-- Row 2: product name range -->
-        <div class="flex-row">
-          <div class="flex-item">
-            <label for="start-name">จากชื่อสินค้า</label>
-            <div class="autocomplete">
-              <input type="text" id="start-name" placeholder="เช่น Union" autocomplete="off" />
-              <div class="autocomplete-items" id="start-name-suggestions"></div>
-            </div>
-          </div>
-          <div class="flex-item">
-            <label for="end-name">ถึงชื่อสินค้า</label>
-            <div class="autocomplete">
-              <input type="text" id="end-name" placeholder="เช่น Ring" autocomplete="off" />
-              <div class="autocomplete-items" id="end-name-suggestions"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Document code search with suggestions -->
-        <label for="document-code">รหัสเอกสารสั่งซื้อ (ตัวเลือก)</label>
-        <div class="autocomplete">
-          <input type="text" id="document-code" placeholder="เช่น PO-987" autocomplete="off" />
-          <div class="autocomplete-items" id="document-code-suggestions"></div>
-        </div>
-
-        <button type="button" onclick="searchProduct()">ค้นหา</button>
-      </form>
-      <!-- Container to display search results -->
-      <div id="result" class="hidden"></div>
-    </div>
-
-    <!-- Calendar section -->
-    <div id="calendar-section">
-      <div class="calendar-nav">
-        <button id="prev-month">ก่อนหน้า</button>
-        <div id="month-year-title"></div>
-        <button id="next-month">ถัดไป</button>
+    <!-- Search and calendar sub-tabs container -->
+    <div id="search-calendar-container">
+      <!-- Tab navigation -->
+      <div class="tab-container">
+        <button class="tab-button active" id="search-tab">ค้นหา</button>
+        <button class="tab-button" id="calendar-tab">ปฏิทิน</button>
       </div>
-      <table class="calendar-table">
-        <thead>
-          <tr>
-            <th>อา</th>
-            <th>จ</th>
-            <th>อ</th>
-            <th>พ</th>
-            <th>พฤ</th>
-            <th>ศ</th>
-            <th>ส</th>
-          </tr>
-        </thead>
-        <tbody id="calendar-body"></tbody>
-      </table>
-      <!-- Details of events on selected date -->
-      <div id="events-list" style="margin-top: 20px;"></div>
+
+      <!-- Search section -->
+      <div id="search-section">
+        <p style="text-align:center;">กรุณากรอกข้อมูลสินค้าของคุณเพื่อค้นหาวันที่รับสินค้า</p>
+        <form id="search-form" onsubmit="return false;">
+          <!-- Row 1: product code range -->
+          <div class="flex-row">
+            <div class="flex-item">
+              <label for="start-code">จากรหัสสินค้า</label>
+              <div class="autocomplete">
+                <input type="text" id="start-code" placeholder="เช่น CAS-100104" autocomplete="off" />
+                <div class="autocomplete-items" id="start-code-suggestions"></div>
+              </div>
+            </div>
+            <div class="flex-item">
+              <label for="end-code">ถึงรหัสสินค้า</label>
+              <div class="autocomplete">
+                <input type="text" id="end-code" placeholder="เช่น CAS-100105" autocomplete="off" />
+                <div class="autocomplete-items" id="end-code-suggestions"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Row 2: product name range -->
+          <div class="flex-row">
+            <div class="flex-item">
+              <label for="start-name">จากชื่อสินค้า</label>
+              <div class="autocomplete">
+                <input type="text" id="start-name" placeholder="เช่น Union" autocomplete="off" />
+                <div class="autocomplete-items" id="start-name-suggestions"></div>
+              </div>
+            </div>
+            <div class="flex-item">
+              <label for="end-name">ถึงชื่อสินค้า</label>
+              <div class="autocomplete">
+                <input type="text" id="end-name" placeholder="เช่น Ring" autocomplete="off" />
+                <div class="autocomplete-items" id="end-name-suggestions"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document code search with suggestions -->
+          <label for="document-code">รหัสเอกสารสั่งซื้อ (ตัวเลือก)</label>
+          <div class="autocomplete">
+            <input type="text" id="document-code" placeholder="เช่น PO-987" autocomplete="off" />
+            <div class="autocomplete-items" id="document-code-suggestions"></div>
+          </div>
+
+          <button type="button" onclick="searchProduct()">ค้นหา</button>
+        </form>
+        <!-- Container to display search results -->
+        <div id="result" class="hidden"></div>
+      </div>
+
+      <!-- Calendar section -->
+      <div id="calendar-section">
+        <div class="calendar-nav">
+          <button id="prev-month">ก่อนหน้า</button>
+          <div id="month-year-title"></div>
+          <button id="next-month">ถัดไป</button>
+        </div>
+        <table class="calendar-table">
+          <thead>
+            <tr>
+              <th>อา</th>
+              <th>จ</th>
+              <th>อ</th>
+              <th>พ</th>
+              <th>พฤ</th>
+              <th>ศ</th>
+              <th>ส</th>
+            </tr>
+          </thead>
+          <tbody id="calendar-body"></tbody>
+        </table>
+        <!-- Details of events on selected date -->
+        <div id="events-list" style="margin-top: 20px;"></div>
+      </div>
     </div>
-  </div>
+
+    <!-- Reorder section (order point recommendations) -->
+    <div id="order-section" class="hidden">
+      <h2>รายการสินค้าที่ควรสั่งซื้อ</h2>
+      <div id="order-result"></div>
+    </div>
 
   <script>
     /**
@@ -391,9 +453,9 @@
       return `${day}/${month}/${year}`;
     }
 
-    // ตั้งค่าระบบแนะนำอัตโนมัติแบบกำหนดเองสำหรับช่องค้นหา
+    // ตั้งค่าระบบแนะนำอัตโนมัติแบบกำหนดเองสำหรับช่องรหัสสินค้าและชื่อสินค้า
     window.addEventListener('DOMContentLoaded', () => {
-      // สร้างรายการไม่ซ้ำสำหรับใช้ในการค้นหา
+      // สร้างรายการรหัสสินค้าและชื่อสินค้าไม่ซ้ำสำหรับใช้ในการค้นหา
       const uniqueCodes = [...new Set(sheetData.map(item => item.productCode))];
       const uniqueNames = [...new Set(sheetData.map(item => item.productName))];
       const uniqueDocs = [...new Set(sheetData.map(item => item.documentCode))];
@@ -401,15 +463,21 @@
       /**
        * แสดงรายการตัวเลือกที่ตรงหรือใกล้เคียงกับค่าที่ผู้ใช้พิมพ์
        * หากกำหนด showAll = true จะทำให้แสดงรายการทั้งหมดเมื่อไม่มีการพิมพ์
+       * @param {HTMLInputElement} inputElem อินพุตเป้าหมาย
+       * @param {HTMLElement} listElem องค์ประกอบสำหรับแสดงรายการตัวเลือก
+       * @param {string[]} listData รายการข้อมูลที่ใช้ค้นหา
+       * @param {boolean} showAll กำหนดให้แสดงรายการทั้งหมดถ้าไม่มีค่าพิมพ์
        */
       function showSuggestions(inputElem, listElem, listData, showAll = false) {
         const value = inputElem.value.trim().toLowerCase();
         listElem.innerHTML = '';
         let matches = [];
         if (!value && !showAll) {
+          // ไม่มีค่าที่พิมพ์และไม่ต้องการแสดงทั้งหมด
           listElem.style.display = 'none';
           return;
         }
+        // หาก showAll เป็น true ให้แสดงรายการทั้งหมด
         if (showAll && !value) {
           matches = listData;
         } else {
@@ -433,7 +501,7 @@
         }
       }
 
-      // กำหนดอีเวนต์สำหรับช่องค้นหา
+      // กำหนดอีเวนต์สำหรับช่องค้นหา (รหัสสินค้า, ชื่อสินค้า, เอกสาร)
       const startInput = document.getElementById('start-code');
       const endInput = document.getElementById('end-code');
       const startNameInput = document.getElementById('start-name');
@@ -449,12 +517,14 @@
       startNameInput.addEventListener('input', () => showSuggestions(startNameInput, startNameSuggestions, uniqueNames));
       endNameInput.addEventListener('input', () => showSuggestions(endNameInput, endNameSuggestions, uniqueNames));
       docInput.addEventListener('input', () => showSuggestions(docInput, docSuggestions, uniqueDocs));
-      // แสดงรายการเอกสารทั้งหมดเมื่อโฟกัส
+
+      // แสดงรายการเอกสารทั้งหมดเมื่อโฟกัสที่ช่องรหัสเอกสารสั่งซื้อ
       docInput.addEventListener('focus', () => {
+        // หากช่องว่าง ให้แสดงรายการทั้งหมด เพื่อช่วยให้ผู้ใช้เลือกได้ง่าย
         showSuggestions(docInput, docSuggestions, uniqueDocs, true);
       });
 
-      // ซ่อนรายการแนะนำเมื่อผู้ใช้คลิกส่วนอื่น
+      // ซ่อนรายการแนะนำเมื่อผู้ใช้คลิกที่ส่วนอื่นของหน้า
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete')) {
           startSuggestions.innerHTML = '';
@@ -471,62 +541,102 @@
       });
     });
 
-    // ฟังก์ชันสร้างปฏิทินและแสดงเหตุการณ์
+    // ฟังก์ชันสำหรับแปลงรูปแบบวันที่ (YYYY-MM-DD → DD/MM/YYYY)
+    function formatDate(dateString) {
+      const [year, month, day] = dateString.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    /**
+     * ======== ส่วนด้านปฏิทิน ========
+     * ฟังก์ชันชุดต่อไปนี้จะช่วยสร้างปฏิทินจากข้อมูล sheetData
+     * โดยแปลงวันที่รับสินค้าในรูปแบบปีพุทธศักราช (พ.ศ.)
+     * เป็นปีสากล (ค.ศ.) เพื่อนำมาใช้งานกับออบเจ็กต์ Date ของ JavaScript
+     * แล้วสร้างตารางปฏิทินพร้อมรายการสินค้าในแต่ละวัน
+     */
+
+    // แปลงข้อมูล sheetData เป็นแมปของวันที่และรายการสินค้า
     function buildEventsMap(data) {
       const events = {};
       data.forEach(item => {
-        const datePart = item.receiveDate.split(' ')[0];
+        const datePart = item.receiveDate.split(' ')[0]; // รูปแบบ YYYY-MM-DD
         const [bYear, month, day] = datePart.split('-');
+        // แปลงปี พ.ศ. เป็น ค.ศ.
         const gYear = parseInt(bYear, 10) - 543;
         const key = `${gYear}-${month}-${day}`;
-        if (!events[key]) events[key] = [];
+        if (!events[key]) {
+          events[key] = [];
+        }
         events[key].push(item);
       });
       return events;
     }
-    const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-    let currentMonth = new Date().getMonth();
+
+    // สร้างชื่อเดือนภาษาไทย
+    const thaiMonths = [
+      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+
+    // ตัวแปรสถานะของปฏิทินปัจจุบัน
+    let currentMonth = new Date().getMonth(); // 0-11
     let currentYear = new Date().getFullYear();
     const eventsMap = buildEventsMap(sheetData);
 
+    // ฟังก์ชันแสดงปฏิทินสำหรับเดือนและปีปัจจุบัน
     function renderCalendar() {
       const calendarBody = document.getElementById('calendar-body');
       calendarBody.innerHTML = '';
+      // สร้างอ็อบเจ็กต์วันที่แรกของเดือน
       const firstDay = new Date(currentYear, currentMonth, 1);
-      const startingDay = firstDay.getDay();
+      const startingDay = firstDay.getDay(); // 0 = Sunday
+      // หาจำนวนวันในเดือน
       const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      // ตั้งค่าชื่อเดือนและปี (ใช้พ.ศ.)
       const monthYearTitle = document.getElementById('month-year-title');
       const buddhistYear = currentYear + 543;
       monthYearTitle.textContent = `${thaiMonths[currentMonth]} ${buddhistYear}`;
+
       let date = 1;
+      // ปฏิทินมี 6 แถวสูงสุด (บางเดือนจะไม่ใช้ทั้งหมด)
       for (let i = 0; i < 6; i++) {
         const row = document.createElement('tr');
         for (let j = 0; j < 7; j++) {
           const cell = document.createElement('td');
+          // ช่องว่างก่อนวันแรกของเดือน
           if (i === 0 && j < startingDay) {
             cell.textContent = '';
           } else if (date > daysInMonth) {
+            // หลังจากวันสุดท้ายของเดือน
             cell.textContent = '';
           } else {
+            // แสดงเลขวัน
             const dayNumber = document.createElement('div');
             dayNumber.className = 'calendar-day-number';
             dayNumber.textContent = date;
             cell.appendChild(dayNumber);
+            // ตรวจสอบว่ามีเหตุการณ์ในวันนี้หรือไม่
             const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
             if (eventsMap[dateKey]) {
               eventsMap[dateKey].forEach(evt => {
+                // สร้างลิงก์ให้ผู้ใช้สามารถคลิกเพื่อดูรายละเอียดสินค้า
                 const eventElem = document.createElement('a');
                 eventElem.className = 'calendar-event';
                 eventElem.href = '#';
+                // ใช้รหัสสินค้าหรือชื่อย่อเป็นข้อความในปฏิทิน
+                // แสดงรหัสสินค้าและจำนวนในปฏิทิน เช่น CAS-100104 (10)
                 eventElem.textContent = `${evt.productCode} (${evt.quantity})`;
+                // เมื่อคลิกที่เหตุการณ์ แสดงรายละเอียดใน events-list
                 eventElem.addEventListener('click', (e) => {
                   e.preventDefault();
-                  e.stopPropagation();
+                  e.stopPropagation(); // ป้องกันไม่ให้เหตุการณ์ทะลุถึงเซลล์หลัก
                   showEventDetails(dateKey);
                 });
                 cell.appendChild(eventElem);
               });
             }
+            // เมื่อคลิกที่เซลล์วัน ให้แสดงรายละเอียดเหตุการณ์ (ถ้ามี)
             cell.addEventListener('click', () => {
               showEventDetails(dateKey);
             });
@@ -535,14 +645,19 @@
           row.appendChild(cell);
         }
         calendarBody.appendChild(row);
-        if (date > daysInMonth) break;
+        // ถ้า date เกินจำนวนวันของเดือนและเป็นแถวแรกที่หมด ให้หยุดเพิ่มแถว
+        if (date > daysInMonth) {
+          break;
+        }
       }
     }
 
+    // แสดงรายละเอียดเหตุการณ์ของวันที่ที่เลือก
     function showEventDetails(dateKey) {
       const eventsList = document.getElementById('events-list');
       eventsList.innerHTML = '';
       if (eventsMap[dateKey]) {
+        // แสดงหัวข้อวันที่ในรูปแบบ พ.ศ.
         const [year, month, day] = dateKey.split('-');
         const buddhistYear = parseInt(year, 10) + 543;
         const heading = document.createElement('h3');
@@ -560,6 +675,7 @@
       }
     }
 
+    // ฟังก์ชันเปลี่ยนเดือน – ลด 1 เดือน
     function prevMonth() {
       currentMonth--;
       if (currentMonth < 0) {
@@ -568,6 +684,8 @@
       }
       renderCalendar();
     }
+
+    // ฟังก์ชันเปลี่ยนเดือน – เพิ่ม 1 เดือน
     function nextMonth() {
       currentMonth++;
       if (currentMonth > 11) {
@@ -577,8 +695,118 @@
       renderCalendar();
     }
 
-    // ตั้งค่าแท็บและการเลื่อนเดือน
+    // ===============================================
+    // Purchase data and reorder point calculations
+    // Data from Google Sheet "สินค้าค้างรับ" sheet "data จัดซื้อ"
+    const purchaseData = [
+      { productCode: 'CAS-022003', productName: 'Copper Washer BSP3/8 #022003', netStock: 4, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-022105', productName: 'Copper Washer M18x1.5 #022105', netStock: 6, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-032001', productName: 'Bonded Washer BSP 1/8 #032001', netStock: 2, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-032002', productName: 'Bonded Washer BSP 1/4 #032002', netStock: 67, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-032003', productName: 'Bonded Washer BSP 3/8 #032003', netStock: 0, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-032004', productName: 'Bonded Washer BSP 1/2 #032004', netStock: 4, sales12: 4, bills12: 1, customers12: 1 },
+      { productCode: 'CAS-100104', productName: 'Ring 6 MM # 100104 (L)', netStock: 8, sales12: 80, bills12: 2, customers12: 1 },
+      { productCode: 'CAS-100105', productName: 'Ring 8 MM # 100105 (L)', netStock: 70, sales12: 132, bills12: 4, customers12: 4 },
+      { productCode: 'CAS-100106', productName: 'Ring 10 MM # 100106 (L)', netStock: 203, sales12: 245, bills12: 11, customers12: 5 },
+      { productCode: 'CAS-100107', productName: 'Ring 12 MM # 100107 (L)', netStock: 485, sales12: 1812, bills12: 14, customers12: 5 },
+      { productCode: 'CAS-100108', productName: 'Ring 15 MM # 100108 (L)', netStock: 456, sales12: 205, bills12: 16, customers12: 4 },
+      { productCode: 'CAS-100109', productName: 'Ring 18 MM # 100109 (L)', netStock: 138, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-100110', productName: 'Ring 22 MM # 100110 (L)', netStock: 78, sales12: 87, bills12: 11, customers12: 1 },
+      { productCode: 'CAS-100119', productName: 'Ring 16 MM # 100119 (S)', netStock: 68, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-100120', productName: 'Ring 20 MM # 100120 (S)', netStock: 133, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-100121', productName: 'Ring 25 MM # 100121 (S)', netStock: 51, sales12: 20, bills12: 1, customers12: 1 },
+      { productCode: 'CAS-100204', productName: 'Nut 6 MM # 100204 (L)', netStock: 171, sales12: 80, bills12: 1, customers12: 1 },
+      { productCode: 'CAS-100205', productName: 'Nut 8 MM # 100205 (L)', netStock: 186, sales12: 100, bills12: 1, customers12: 1 },
+      { productCode: 'CAS-100206', productName: 'Nut 10 MM # 100206 (L)', netStock: 202, sales12: 180, bills12: 8, customers12: 3 },
+      { productCode: 'CAS-100207', productName: 'Nut 12 MM # 100207 (L)', netStock: 113, sales12: 1530, bills12: 8, customers12: 2 },
+      { productCode: 'CAS-100208', productName: 'Nut 15 MM # 100208 (L)', netStock: 489, sales12: 152, bills12: 11, customers12: 1 },
+      { productCode: 'CAS-100209', productName: 'Nut 18 MM # 100209 (L)', netStock: 142, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-100210', productName: 'Nut 22 MM # 100210 (L)', netStock: 93, sales12: 87, bills12: 11, customers12: 1 },
+      { productCode: 'CAS-100219', productName: 'Nut 16 MM # 100219 (S)', netStock: 139, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-100220', productName: 'Nut 20 MM # 100220 (S)', netStock: 78, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-100221', productName: 'Nut 25 MM # 100221 (S)', netStock: 64, sales12: 0, bills12: 0, customers12: 0 },
+      { productCode: 'CAS-100506', productName: 'Straight Connector 10-1/4 BSP # 100506 (L)', netStock: 99, sales12: 7, bills12: 2, customers12: 2 },
+      { productCode: 'CAS-100507', productName: 'Straight Connector 12-3/8 BSP # 100507 (L)', netStock: 106, sales12: 52, bills12: 4, customers12: 2 }
+    ];
+
+    /**
+     * คำนวณรายการสินค้าที่ควรสั่งซื้อ
+     * ตามเงื่อนไข:
+     * 1. ยอดขาย 12 เดือน / 2
+     * 2. ลบสต็อกสุทธิ หากได้ค่าบวกคือจำนวนที่ควรสั่ง
+     * 3. หากสินค้ามีบิลขายเพียง 1 ใบ และลูกค้าเพียง 1 ราย จะไม่นับยอดขาย (ถือเป็นกรณีพิเศษ)
+     */
+    function calculateReorderList() {
+      const list = [];
+      purchaseData.forEach(item => {
+        // ตรวจสอบข้อ 3: หากมีบิลเดียวและลูกค้าเดียว ให้ไม่นับยอดขาย
+        let effectiveSales = item.sales12;
+        if (item.bills12 === 1 && item.customers12 === 1) {
+          effectiveSales = 0;
+        }
+        const halfSales = effectiveSales / 2;
+        const reorderQty = Math.ceil(halfSales - item.netStock);
+        if (reorderQty > 0) {
+          list.push({
+            ...item,
+            reorderQty
+          });
+        }
+      });
+      return list;
+    }
+
+    // สร้างตารางแสดงสินค้าที่ควรสั่งซื้อ
+    function renderReorderTable() {
+      const container = document.getElementById('order-result');
+      if (!container) return;
+      const list = calculateReorderList();
+      if (list.length === 0) {
+        container.innerHTML = '<p>ไม่มีสินค้าที่ควรสั่งซื้อ</p>';
+        return;
+      }
+      let html = '<table class=\"result-table\"><thead><tr><th>#</th><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>สุทธิในสต็อก</th><th>ขาย 12 เดือน</th><th>จำนวนที่ควรสั่งซื้อ</th></tr></thead><tbody>';
+      list.forEach((item, idx) => {
+        html += `<tr>` +
+                `<td>${idx + 1}</td>` +
+                `<td>${item.productCode}</td>` +
+                `<td>${item.productName}</td>` +
+                `<td>${item.netStock}</td>` +
+                `<td>${item.sales12}</td>` +
+                `<td>${item.reorderQty}</td>` +
+                `</tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    // ตั้งค่าการทำงานของแท็บหลัก (หน้าหลัก) สำหรับค้นหาและจุดสั่งซื้อ
+    window.addEventListener('DOMContentDOMContentLoaded', () => {
+      const mainSearchTab = document.getElementById('main-search-tab');
+      const mainOrderTab = document.getElementById('main-order-tab');
+      const searchCalendarContainer = document.getElementById('search-calendar-container');
+      const orderSection = document.getElementById('order-section');
+      if (mainSearchTab && mainOrderTab) {
+        mainSearchTab.addEventListener('click', () => {
+          mainSearchTab.classList.add('active');
+          mainOrderTab.classList.remove('active');
+          if (searchCalendarContainer) searchCalendarContainer.style.display = 'block';
+          if (orderSection) orderSection.style.display = 'none';
+        });
+        mainOrderTab.addEventListener('click', () => {
+          mainOrderTab.classList.add('active');
+          mainSearchTab.classList.remove('active');
+          if (searchCalendarContainer) searchCalendarContainer.style.display = 'none';
+          if (orderSection) orderSection.style.display = 'block';
+          // เมื่อเข้าสู่แท็บจุดสั่งซื้อ ให้คำนวณและแสดงตารางสั่งซื้อ
+          renderReorderTable();
+        });
+      }
+    });
+
+    // ตั้งค่าการทำงานของแท็บและปฏิทิน
     window.addEventListener('DOMContentLoaded', () => {
+      // กำหนดการสลับแท็บ
       const searchTab = document.getElementById('search-tab');
       const calendarTab = document.getElementById('calendar-tab');
       const searchSection = document.getElementById('search-section');
@@ -586,16 +814,20 @@
       searchTab.addEventListener('click', () => {
         searchTab.classList.add('active');
         calendarTab.classList.remove('active');
+        // แสดงส่วนค้นหาและซ่อนส่วนปฏิทิน
         searchSection.style.display = 'block';
         calendarSection.style.display = 'none';
       });
       calendarTab.addEventListener('click', () => {
         calendarTab.classList.add('active');
         searchTab.classList.remove('active');
+        // แสดงส่วนปฏิทินและซ่อนส่วนค้นหา
         searchSection.style.display = 'none';
         calendarSection.style.display = 'block';
+        // เมื่อเข้ามาที่แท็บปฏิทิน ให้แสดงปฏิทิน
         renderCalendar();
       });
+      // ตั้งค่าปุ่มเลื่อนเดือน
       document.getElementById('prev-month').addEventListener('click', prevMonth);
       document.getElementById('next-month').addEventListener('click', nextMonth);
     });
