@@ -156,6 +156,32 @@
     .autocomplete-item:hover {
       background-color: #f0f0f0;
     }
+
+    /* Table for search results */
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    .result-table th,
+    .result-table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    .result-table th {
+      background-color: #f0f0f0;
+    }
+
+    /* Layout for paired fields */
+    .flex-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .flex-row .flex-item {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -171,22 +197,47 @@
     <div id="search-section">
       <p style="text-align:center;">กรุณากรอกข้อมูลสินค้าของคุณเพื่อค้นหาวันที่รับสินค้า</p>
       <form id="search-form" onsubmit="return false;">
-        <label for="product-code">รหัสสินค้า</label>
-        <!-- Use custom autocomplete container instead of datalist -->
-        <div class="autocomplete">
-          <input type="text" id="product-code" placeholder="เช่น CAS-100104" autocomplete="off" />
-          <div class="autocomplete-items" id="product-code-suggestions"></div>
+        <!-- Row 1: product code range -->
+        <div class="flex-row">
+          <div class="flex-item">
+            <label for="start-code">จากรหัสสินค้า</label>
+            <div class="autocomplete">
+              <input type="text" id="start-code" placeholder="เช่น CAS-100104" autocomplete="off" />
+              <div class="autocomplete-items" id="start-code-suggestions"></div>
+            </div>
+          </div>
+          <div class="flex-item">
+            <label for="end-code">ถึงรหัสสินค้า</label>
+            <div class="autocomplete">
+              <input type="text" id="end-code" placeholder="เช่น CAS-100105" autocomplete="off" />
+              <div class="autocomplete-items" id="end-code-suggestions"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Row 2: product name range -->
+        <div class="flex-row">
+          <div class="flex-item">
+            <label for="start-name">จากชื่อสินค้า</label>
+            <div class="autocomplete">
+              <input type="text" id="start-name" placeholder="เช่น Union" autocomplete="off" />
+              <div class="autocomplete-items" id="start-name-suggestions"></div>
+            </div>
+          </div>
+          <div class="flex-item">
+            <label for="end-name">ถึงชื่อสินค้า</label>
+            <div class="autocomplete">
+              <input type="text" id="end-name" placeholder="เช่น Ring" autocomplete="off" />
+              <div class="autocomplete-items" id="end-name-suggestions"></div>
+            </div>
+          </div>
         </div>
 
-        <label for="product-name">ชื่อสินค้า</label>
-        <!-- Use custom autocomplete container instead of datalist -->
+        <!-- Document code search with suggestions -->
+        <label for="document-code">รหัสเอกสารสั่งซื้อ (ตัวเลือก)</label>
         <div class="autocomplete">
-          <input type="text" id="product-name" placeholder="เช่น Ring 6 MM" autocomplete="off" />
-          <div class="autocomplete-items" id="product-name-suggestions"></div>
+          <input type="text" id="document-code" placeholder="เช่น PO-987" autocomplete="off" />
+          <div class="autocomplete-items" id="document-code-suggestions"></div>
         </div>
-
-        <label for="document-code">รหัสเอกสารสั่งซื้อ</label>
-        <input type="text" id="document-code" placeholder="เช่น PO-987" />
 
         <button type="button" onclick="searchProduct()">ค้นหา</button>
       </form>
@@ -221,45 +272,107 @@
   </div>
 
   <script>
-    // ข้อมูลจาก Google Sheet "สินค้าค้างรับ" (ตัวอย่าง)
+    /**
+     * คำสั่งนี้เป็นเพียงตัวอย่างสำหรับการเชื่อมต่อกับข้อมูลใน Google Sheet.
+     * ในการใช้งานจริง คุณจะต้องแก้ไขฟังก์ชัน fetchData() ให้ดึงข้อมูลจาก Google Sheet
+     * ผ่านทาง API หรือบริการอื่น ๆ ที่เหมาะสม
+     */
+
+    // ข้อมูลจาก Google Sheet "สินค้าค้างรับ"
+    // แต่ละรายการประกอบด้วย: รหัสสินค้า, ชื่อสินค้า, วันที่รับ/ส่ง (ปีพุทธศักราช), และเลขที่ PO
     const sheetData = [
-      { productCode: 'CAS-100104', productName: 'Ring 6 MM # 100104 (L)', receiveDate: '2568-12-12 00:00:00', documentCode: 'POS-1234' },
-      { productCode: 'CAS-100105', productName: 'Ring 8 MM # 100105 (L)', receiveDate: '2568-12-13 00:00:00', documentCode: 'POS-1235' },
-      { productCode: 'CAS-100207', productName: 'Nut 12 MM # 100207 (L)', receiveDate: '2568-12-14 00:00:00', documentCode: 'POS-1236' },
-      { productCode: 'CAS-101807', productName: 'Straight Connector 12-3/8 NPT # 101807 (L)', receiveDate: '2568-12-15 00:00:00', documentCode: 'POS-1237' },
-      { productCode: 'CAS-101824', productName: 'Straight Connector 6-1/4 NPT # 101824 (L)', receiveDate: '2568-12-16 00:00:00', documentCode: 'POS-1238' },
-      { productCode: 'CAS-101832', productName: 'Straight Connector 12-1/2 NPT # 101832 (L)', receiveDate: '2568-12-17 00:00:00', documentCode: 'POS-1239' },
-      { productCode: 'CAS-103505', productName: 'Union 8 MM #103505 ( L )', receiveDate: '2568-12-18 00:00:00', documentCode: 'POS-1240' },
-      { productCode: 'CAS-103520', productName: 'Union 20 MM # 103520 ( S )', receiveDate: '2568-12-19 00:00:00', documentCode: 'POS-1241' },
-      { productCode: 'CAS-103805', productName: 'Union Elbow 8 MM # 103805 ( L )', receiveDate: '2568-12-20 00:00:00', documentCode: 'POS-1242' },
-      { productCode: 'CAS-103806', productName: 'Union Elbow 10 MM # 103806 ( L )', receiveDate: '2568-12-21 00:00:00', documentCode: 'POS-1243' },
-      { productCode: 'CAS-104111', productName: 'REDUCER FITTING 15L/12L #104111', receiveDate: '2568-12-22 00:00:00', documentCode: 'POS-1244' },
-      { productCode: 'CAS-604208', productName: 'ADJ MALE STUD ELBOW 15L #604208', receiveDate: '2568-12-23 00:00:00', documentCode: 'POS-1245' },
-      { productCode: 'CAS-605008', productName: 'ADJ EQUAL TEE 15L #605008', receiveDate: '2568-12-24 00:00:00', documentCode: 'POS-1246' }
+      { productCode: 'CAS-100104', productName: 'Ring 6 MM # 100104 (L)', receiveDate: '2568-12-12 00:00:00', documentCode: 'POS-1234', quantity: 1 },
+      { productCode: 'CAS-100105', productName: 'Ring 8 MM # 100105 (L)', receiveDate: '2568-12-13 00:00:00', documentCode: 'POS-1235', quantity: 2 },
+      { productCode: 'CAS-100207', productName: 'Nut 12 MM # 100207 (L)', receiveDate: '2568-12-14 00:00:00', documentCode: 'POS-1236', quantity: 3 },
+      { productCode: 'CAS-101807', productName: 'Straight Connector 12-3/8 NPT # 101807 (L)', receiveDate: '2568-12-15 00:00:00', documentCode: 'POS-1237', quantity: 4 },
+      { productCode: 'CAS-101824', productName: 'Straight Connector 6-1/4 NPT # 101824 (L)', receiveDate: '2568-12-16 00:00:00', documentCode: 'POS-1238', quantity: 5 },
+      { productCode: 'CAS-101832', productName: 'Straight Connector 12-1/2 NPT # 101832 (L)', receiveDate: '2568-12-17 00:00:00', documentCode: 'POS-1239', quantity: 6 },
+      { productCode: 'CAS-103505', productName: 'Union 8 MM #103505 ( L )', receiveDate: '2568-12-18 00:00:00', documentCode: 'POS-1240', quantity: 7 },
+      { productCode: 'CAS-103520', productName: 'Union 20 MM # 103520 ( S )', receiveDate: '2568-12-19 00:00:00', documentCode: 'POS-1241', quantity: 8 },
+      { productCode: 'CAS-103805', productName: 'Union Elbow 8 MM # 103805 ( L )', receiveDate: '2568-12-20 00:00:00', documentCode: 'POS-1242', quantity: 9 },
+      { productCode: 'CAS-103806', productName: 'Union Elbow 10 MM # 103806 ( L )', receiveDate: '2568-12-21 00:00:00', documentCode: 'POS-1243', quantity: 10 },
+      { productCode: 'CAS-104111', productName: 'REDUCER FITTING 15L/12L #104111', receiveDate: '2568-12-22 00:00:00', documentCode: 'POS-1244', quantity: 11 },
+      { productCode: 'CAS-604208', productName: 'ADJ MALE STUD ELBOW 15L #604208', receiveDate: '2568-12-23 00:00:00', documentCode: 'POS-1245', quantity: 12 },
+      { productCode: 'CAS-605008', productName: 'ADJ EQUAL TEE 15L #605008', receiveDate: '2568-12-24 00:00:00', documentCode: 'POS-1246', quantity: 13 }
     ];
 
-    // ค้นหารายการสินค้า
+    // ฟังก์ชันสำหรับค้นหาข้อมูลจาก sheetData
     function searchProduct() {
-      const code = document.getElementById('product-code').value.trim();
-      const name = document.getElementById('product-name').value.trim();
-      const doc = document.getElementById('document-code').value.trim();
+      const startCode = document.getElementById('start-code').value.trim();
+      const endCode = document.getElementById('end-code').value.trim();
+      const startName = document.getElementById('start-name').value.trim().toLowerCase();
+      const endName = document.getElementById('end-name').value.trim().toLowerCase();
+      const doc = document.getElementById('document-code').value.trim().toLowerCase();
 
-      const result = sheetData.find((item) => {
-        const matchCode = code ? item.productCode.toLowerCase() === code.toLowerCase() : true;
-        const matchName = name ? item.productName.toLowerCase().includes(name.toLowerCase()) : true;
-        const matchDoc = doc ? item.documentCode.toLowerCase() === doc.toLowerCase() : true;
-        return matchCode && matchName && matchDoc;
-      });
+      let results = [];
+
+      // Helper to extract numeric part from product code (after the hyphen)
+      function extractNumber(code) {
+        if (!code) return NaN;
+        const parts = code.split('-');
+        if (parts.length > 1) {
+          return parseInt(parts[1], 10);
+        }
+        return NaN;
+      }
+
+      const startNum = extractNumber(startCode);
+      const endNum = extractNumber(endCode);
+
+      if (startCode && endCode && !isNaN(startNum) && !isNaN(endNum)) {
+        const s = Math.min(startNum, endNum);
+        const e = Math.max(startNum, endNum);
+        // Filter items whose numeric code is between s and e inclusive
+        results = sheetData.filter(item => {
+          const codeNum = extractNumber(item.productCode);
+          return codeNum >= s && codeNum <= e;
+        });
+      } else if ((startCode || endCode)) {
+        // Search for a single specific code if only one code provided
+        const target = (startCode || endCode).toLowerCase();
+        results = sheetData.filter(item => item.productCode.toLowerCase() === target);
+      } else {
+        // No code provided; default to all items
+        results = [...sheetData];
+      }
+
+      // Apply optional filters for product name range
+      if (startName && endName) {
+        // Determine lexicographical order
+        const sName = startName < endName ? startName : endName;
+        const eName = startName < endName ? endName : startName;
+        results = results.filter(item => {
+          const itemName = item.productName.toLowerCase();
+          return itemName >= sName && itemName <= eName;
+        });
+      } else if (startName || endName) {
+        const targetName = startName || endName;
+        results = results.filter(item => item.productName.toLowerCase().includes(targetName));
+      }
+      // Apply optional filter for document code (partial match)
+      if (doc) {
+        results = results.filter(item => item.documentCode.toLowerCase().includes(doc));
+      }
+
+      // Sort results by numeric part of product code ascending
+      results.sort((a, b) => extractNumber(a.productCode) - extractNumber(b.productCode));
 
       const resultDiv = document.getElementById('result');
-      if (result) {
-        resultDiv.innerHTML = `
-          <h2>พบรายการสินค้า</h2>
-          <p><strong>รหัสสินค้า:</strong> ${result.productCode}</p>
-          <p><strong>ชื่อสินค้า:</strong> ${result.productName}</p>
-          <p><strong>รหัสเอกสารสั่งซื้อ:</strong> ${result.documentCode}</p>
-          <p><strong>วันที่รับสินค้า:</strong> ${formatBuddhistDate(result.receiveDate)}</p>
-        `;
+      if (results.length > 0) {
+        let html = `<h2>พบ ${results.length} รายการ</h2>`;
+        html += `<table class=\"result-table\"><thead><tr><th>#</th><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>จำนวน</th><th>เลขที่เอกสาร</th><th>วันที่รับสินค้า</th></tr></thead><tbody>`;
+        results.forEach((item, idx) => {
+          html += `<tr>` +
+                  `<td>${idx + 1}</td>` +
+                  `<td>${item.productCode}</td>` +
+                  `<td>${item.productName}</td>` +
+                  `<td>${item.quantity}</td>` +
+                  `<td>${item.documentCode}</td>` +
+                  `<td>${formatBuddhistDate(item.receiveDate)}</td>` +
+                  `</tr>`;
+        });
+        html += '</tbody></table>';
+        resultDiv.innerHTML = html;
         resultDiv.classList.remove('hidden');
       } else {
         resultDiv.innerHTML = '<p>ไม่พบข้อมูลตามที่ค้นหา กรุณาลองใหม่อีกครั้ง</p>';
@@ -267,29 +380,41 @@
       }
     }
 
-    // แปลงวันที่ พ.ศ. เป็น ค.ศ.
     function formatBuddhistDate(dateString) {
+      // dateString มีรูปแบบ "YYYY-MM-DD HH:mm:ss" โดย YYYY เป็นปี พ.ศ.
       const parts = dateString.split(' ')[0].split('-');
       let year = parseInt(parts[0], 10);
       const month = parts[1];
       const day = parts[2];
+      // แปลงปี พ.ศ. เป็น ค.ศ. โดยลบ 543 ปี
       year = year - 543;
       return `${day}/${month}/${year}`;
     }
 
-    // ระบบแนะนำอัตโนมัติสำหรับช่องรหัสและชื่อสินค้า
+    // ตั้งค่าระบบแนะนำอัตโนมัติแบบกำหนดเองสำหรับช่องค้นหา
     window.addEventListener('DOMContentLoaded', () => {
+      // สร้างรายการไม่ซ้ำสำหรับใช้ในการค้นหา
       const uniqueCodes = [...new Set(sheetData.map(item => item.productCode))];
       const uniqueNames = [...new Set(sheetData.map(item => item.productName))];
+      const uniqueDocs = [...new Set(sheetData.map(item => item.documentCode))];
 
-      function showSuggestions(inputElem, listElem, listData) {
+      /**
+       * แสดงรายการตัวเลือกที่ตรงหรือใกล้เคียงกับค่าที่ผู้ใช้พิมพ์
+       * หากกำหนด showAll = true จะทำให้แสดงรายการทั้งหมดเมื่อไม่มีการพิมพ์
+       */
+      function showSuggestions(inputElem, listElem, listData, showAll = false) {
         const value = inputElem.value.trim().toLowerCase();
         listElem.innerHTML = '';
-        if (!value) {
+        let matches = [];
+        if (!value && !showAll) {
           listElem.style.display = 'none';
           return;
         }
-        const matches = listData.filter(item => item.toLowerCase().includes(value));
+        if (showAll && !value) {
+          matches = listData;
+        } else {
+          matches = listData.filter(item => item.toLowerCase().includes(value));
+        }
         matches.forEach(item => {
           const div = document.createElement('div');
           div.textContent = item;
@@ -301,35 +426,52 @@
           });
           listElem.appendChild(div);
         });
-        listElem.style.display = matches.length > 0 ? 'block' : 'none';
+        if (matches.length > 0) {
+          listElem.style.display = 'block';
+        } else {
+          listElem.style.display = 'none';
+        }
       }
 
-      const codeInput = document.getElementById('product-code');
-      const nameInput = document.getElementById('product-name');
-      const codeSuggestions = document.getElementById('product-code-suggestions');
-      const nameSuggestions = document.getElementById('product-name-suggestions');
-      codeInput.addEventListener('input', () => showSuggestions(codeInput, codeSuggestions, uniqueCodes));
-      nameInput.addEventListener('input', () => showSuggestions(nameInput, nameSuggestions, uniqueNames));
+      // กำหนดอีเวนต์สำหรับช่องค้นหา
+      const startInput = document.getElementById('start-code');
+      const endInput = document.getElementById('end-code');
+      const startNameInput = document.getElementById('start-name');
+      const endNameInput = document.getElementById('end-name');
+      const docInput = document.getElementById('document-code');
+      const startSuggestions = document.getElementById('start-code-suggestions');
+      const endSuggestions = document.getElementById('end-code-suggestions');
+      const startNameSuggestions = document.getElementById('start-name-suggestions');
+      const endNameSuggestions = document.getElementById('end-name-suggestions');
+      const docSuggestions = document.getElementById('document-code-suggestions');
+      startInput.addEventListener('input', () => showSuggestions(startInput, startSuggestions, uniqueCodes));
+      endInput.addEventListener('input', () => showSuggestions(endInput, endSuggestions, uniqueCodes));
+      startNameInput.addEventListener('input', () => showSuggestions(startNameInput, startNameSuggestions, uniqueNames));
+      endNameInput.addEventListener('input', () => showSuggestions(endNameInput, endNameSuggestions, uniqueNames));
+      docInput.addEventListener('input', () => showSuggestions(docInput, docSuggestions, uniqueDocs));
+      // แสดงรายการเอกสารทั้งหมดเมื่อโฟกัส
+      docInput.addEventListener('focus', () => {
+        showSuggestions(docInput, docSuggestions, uniqueDocs, true);
+      });
 
+      // ซ่อนรายการแนะนำเมื่อผู้ใช้คลิกส่วนอื่น
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete')) {
-          codeSuggestions.innerHTML = '';
-          codeSuggestions.style.display = 'none';
-          nameSuggestions.innerHTML = '';
-          nameSuggestions.style.display = 'none';
+          startSuggestions.innerHTML = '';
+          startSuggestions.style.display = 'none';
+          endSuggestions.innerHTML = '';
+          endSuggestions.style.display = 'none';
+          startNameSuggestions.innerHTML = '';
+          startNameSuggestions.style.display = 'none';
+          endNameSuggestions.innerHTML = '';
+          endNameSuggestions.style.display = 'none';
+          docSuggestions.innerHTML = '';
+          docSuggestions.style.display = 'none';
         }
       });
     });
 
-    // ฟังก์ชันสำหรับแปลงรูปแบบวันที่ (YYYY-MM-DD → DD/MM/YYYY)
-    function formatDate(dateString) {
-      const [year, month, day] = dateString.split('-');
-      return `${day}/${month}/${year}`;
-    }
-
-    /*** ส่วนด้านปฏิทิน ***/
-
-    // สร้างแผนที่วัน-รายการสินค้า
+    // ฟังก์ชันสร้างปฏิทินและแสดงเหตุการณ์
     function buildEventsMap(data) {
       const events = {};
       data.forEach(item => {
@@ -342,9 +484,7 @@
       });
       return events;
     }
-
     const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
     const eventsMap = buildEventsMap(sheetData);
@@ -355,11 +495,9 @@
       const firstDay = new Date(currentYear, currentMonth, 1);
       const startingDay = firstDay.getDay();
       const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
       const monthYearTitle = document.getElementById('month-year-title');
       const buddhistYear = currentYear + 543;
       monthYearTitle.textContent = `${thaiMonths[currentMonth]} ${buddhistYear}`;
-
       let date = 1;
       for (let i = 0; i < 6; i++) {
         const row = document.createElement('tr');
@@ -374,14 +512,13 @@
             dayNumber.className = 'calendar-day-number';
             dayNumber.textContent = date;
             cell.appendChild(dayNumber);
-
             const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
             if (eventsMap[dateKey]) {
               eventsMap[dateKey].forEach(evt => {
                 const eventElem = document.createElement('a');
                 eventElem.className = 'calendar-event';
                 eventElem.href = '#';
-                eventElem.textContent = evt.productCode;
+                eventElem.textContent = `${evt.productCode} (${evt.quantity})`;
                 eventElem.addEventListener('click', (e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -414,7 +551,7 @@
         const list = document.createElement('ul');
         eventsMap[dateKey].forEach(evt => {
           const li = document.createElement('li');
-          li.innerHTML = `<strong>รหัสสินค้า:</strong> ${evt.productCode} <br> <strong>ชื่อสินค้า:</strong> ${evt.productName} <br> <strong>เลขที่เอกสาร:</strong> ${evt.documentCode}`;
+          li.innerHTML = `<strong>รหัสสินค้า:</strong> ${evt.productCode} <br> <strong>ชื่อสินค้า:</strong> ${evt.productName} <br> <strong>เลขที่เอกสาร:</strong> ${evt.documentCode} <br> <strong>จำนวน:</strong> ${evt.quantity}`;
           list.appendChild(li);
         });
         eventsList.appendChild(list);
@@ -431,7 +568,6 @@
       }
       renderCalendar();
     }
-
     function nextMonth() {
       currentMonth++;
       if (currentMonth > 11) {
@@ -441,7 +577,7 @@
       renderCalendar();
     }
 
-    // ตั้งค่าแท็บและปุ่มเลื่อนเดือน
+    // ตั้งค่าแท็บและการเลื่อนเดือน
     window.addEventListener('DOMContentLoaded', () => {
       const searchTab = document.getElementById('search-tab');
       const calendarTab = document.getElementById('calendar-tab');
