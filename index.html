@@ -332,16 +332,10 @@
       <h2>รายการสินค้าที่ควรสั่งซื้อ</h2>
       <div id="order-result"></div>
     </div>
+  </div>
 
   <script>
-    /**
-     * คำสั่งนี้เป็นเพียงตัวอย่างสำหรับการเชื่อมต่อกับข้อมูลใน Google Sheet.
-     * ในการใช้งานจริง คุณจะต้องแก้ไขฟังก์ชัน fetchData() ให้ดึงข้อมูลจาก Google Sheet
-     * ผ่านทาง API หรือบริการอื่น ๆ ที่เหมาะสม
-     */
-
-    // ข้อมูลจาก Google Sheet "สินค้าค้างรับ"
-    // แต่ละรายการประกอบด้วย: รหัสสินค้า, ชื่อสินค้า, วันที่รับ/ส่ง (ปีพุทธศักราช), และเลขที่ PO
+    // Sample data from Google Sheet "สินค้าค้างรับ"
     const sheetData = [
       { productCode: 'CAS-100104', productName: 'Ring 6 MM # 100104 (L)', receiveDate: '2568-12-12 00:00:00', documentCode: 'POS-1234', quantity: 1 },
       { productCode: 'CAS-100105', productName: 'Ring 8 MM # 100105 (L)', receiveDate: '2568-12-13 00:00:00', documentCode: 'POS-1235', quantity: 2 },
@@ -358,7 +352,7 @@
       { productCode: 'CAS-605008', productName: 'ADJ EQUAL TEE 15L #605008', receiveDate: '2568-12-24 00:00:00', documentCode: 'POS-1246', quantity: 13 }
     ];
 
-    // ฟังก์ชันสำหรับค้นหาข้อมูลจาก sheetData
+    // Search function
     function searchProduct() {
       const startCode = document.getElementById('start-code').value.trim();
       const endCode = document.getElementById('end-code').value.trim();
@@ -368,7 +362,6 @@
 
       let results = [];
 
-      // Helper to extract numeric part from product code (after the hyphen)
       function extractNumber(code) {
         if (!code) return NaN;
         const parts = code.split('-');
@@ -384,23 +377,19 @@
       if (startCode && endCode && !isNaN(startNum) && !isNaN(endNum)) {
         const s = Math.min(startNum, endNum);
         const e = Math.max(startNum, endNum);
-        // Filter items whose numeric code is between s and e inclusive
         results = sheetData.filter(item => {
           const codeNum = extractNumber(item.productCode);
           return codeNum >= s && codeNum <= e;
         });
       } else if ((startCode || endCode)) {
-        // Search for a single specific code if only one code provided
         const target = (startCode || endCode).toLowerCase();
         results = sheetData.filter(item => item.productCode.toLowerCase() === target);
       } else {
-        // No code provided; default to all items
         results = [...sheetData];
       }
 
-      // Apply optional filters for product name range
+      // Name filter
       if (startName && endName) {
-        // Determine lexicographical order
         const sName = startName < endName ? startName : endName;
         const eName = startName < endName ? endName : startName;
         results = results.filter(item => {
@@ -411,18 +400,17 @@
         const targetName = startName || endName;
         results = results.filter(item => item.productName.toLowerCase().includes(targetName));
       }
-      // Apply optional filter for document code (partial match)
+      // Document code filter
       if (doc) {
         results = results.filter(item => item.documentCode.toLowerCase().includes(doc));
       }
 
-      // Sort results by numeric part of product code ascending
       results.sort((a, b) => extractNumber(a.productCode) - extractNumber(b.productCode));
 
       const resultDiv = document.getElementById('result');
       if (results.length > 0) {
         let html = `<h2>พบ ${results.length} รายการ</h2>`;
-        html += `<table class=\"result-table\"><thead><tr><th>#</th><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>จำนวน</th><th>เลขที่เอกสาร</th><th>วันที่รับสินค้า</th></tr></thead><tbody>`;
+        html += `<table class="result-table"><thead><tr><th>#</th><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>จำนวน</th><th>เลขที่เอกสาร</th><th>วันที่รับสินค้า</th></tr></thead><tbody>`;
         results.forEach((item, idx) => {
           html += `<tr>` +
                   `<td>${idx + 1}</td>` +
@@ -443,41 +431,28 @@
     }
 
     function formatBuddhistDate(dateString) {
-      // dateString มีรูปแบบ "YYYY-MM-DD HH:mm:ss" โดย YYYY เป็นปี พ.ศ.
       const parts = dateString.split(' ')[0].split('-');
       let year = parseInt(parts[0], 10);
       const month = parts[1];
       const day = parts[2];
-      // แปลงปี พ.ศ. เป็น ค.ศ. โดยลบ 543 ปี
       year = year - 543;
       return `${day}/${month}/${year}`;
     }
 
-    // ตั้งค่าระบบแนะนำอัตโนมัติแบบกำหนดเองสำหรับช่องรหัสสินค้าและชื่อสินค้า
+    // Setup autocomplete suggestions
     window.addEventListener('DOMContentLoaded', () => {
-      // สร้างรายการรหัสสินค้าและชื่อสินค้าไม่ซ้ำสำหรับใช้ในการค้นหา
       const uniqueCodes = [...new Set(sheetData.map(item => item.productCode))];
       const uniqueNames = [...new Set(sheetData.map(item => item.productName))];
       const uniqueDocs = [...new Set(sheetData.map(item => item.documentCode))];
 
-      /**
-       * แสดงรายการตัวเลือกที่ตรงหรือใกล้เคียงกับค่าที่ผู้ใช้พิมพ์
-       * หากกำหนด showAll = true จะทำให้แสดงรายการทั้งหมดเมื่อไม่มีการพิมพ์
-       * @param {HTMLInputElement} inputElem อินพุตเป้าหมาย
-       * @param {HTMLElement} listElem องค์ประกอบสำหรับแสดงรายการตัวเลือก
-       * @param {string[]} listData รายการข้อมูลที่ใช้ค้นหา
-       * @param {boolean} showAll กำหนดให้แสดงรายการทั้งหมดถ้าไม่มีค่าพิมพ์
-       */
       function showSuggestions(inputElem, listElem, listData, showAll = false) {
         const value = inputElem.value.trim().toLowerCase();
         listElem.innerHTML = '';
         let matches = [];
         if (!value && !showAll) {
-          // ไม่มีค่าที่พิมพ์และไม่ต้องการแสดงทั้งหมด
           listElem.style.display = 'none';
           return;
         }
-        // หาก showAll เป็น true ให้แสดงรายการทั้งหมด
         if (showAll && !value) {
           matches = listData;
         } else {
@@ -494,14 +469,10 @@
           });
           listElem.appendChild(div);
         });
-        if (matches.length > 0) {
-          listElem.style.display = 'block';
-        } else {
-          listElem.style.display = 'none';
-        }
+        listElem.style.display = matches.length > 0 ? 'block' : 'none';
       }
 
-      // กำหนดอีเวนต์สำหรับช่องค้นหา (รหัสสินค้า, ชื่อสินค้า, เอกสาร)
+      // Input fields and suggestion containers
       const startInput = document.getElementById('start-code');
       const endInput = document.getElementById('end-code');
       const startNameInput = document.getElementById('start-name');
@@ -512,19 +483,16 @@
       const startNameSuggestions = document.getElementById('start-name-suggestions');
       const endNameSuggestions = document.getElementById('end-name-suggestions');
       const docSuggestions = document.getElementById('document-code-suggestions');
+
       startInput.addEventListener('input', () => showSuggestions(startInput, startSuggestions, uniqueCodes));
       endInput.addEventListener('input', () => showSuggestions(endInput, endSuggestions, uniqueCodes));
       startNameInput.addEventListener('input', () => showSuggestions(startNameInput, startNameSuggestions, uniqueNames));
       endNameInput.addEventListener('input', () => showSuggestions(endNameInput, endNameSuggestions, uniqueNames));
       docInput.addEventListener('input', () => showSuggestions(docInput, docSuggestions, uniqueDocs));
-
-      // แสดงรายการเอกสารทั้งหมดเมื่อโฟกัสที่ช่องรหัสเอกสารสั่งซื้อ
       docInput.addEventListener('focus', () => {
-        // หากช่องว่าง ให้แสดงรายการทั้งหมด เพื่อช่วยให้ผู้ใช้เลือกได้ง่าย
         showSuggestions(docInput, docSuggestions, uniqueDocs, true);
       });
 
-      // ซ่อนรายการแนะนำเมื่อผู้ใช้คลิกที่ส่วนอื่นของหน้า
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete')) {
           startSuggestions.innerHTML = '';
@@ -541,27 +509,12 @@
       });
     });
 
-    // ฟังก์ชันสำหรับแปลงรูปแบบวันที่ (YYYY-MM-DD → DD/MM/YYYY)
-    function formatDate(dateString) {
-      const [year, month, day] = dateString.split('-');
-      return `${day}/${month}/${year}`;
-    }
-
-    /**
-     * ======== ส่วนด้านปฏิทิน ========
-     * ฟังก์ชันชุดต่อไปนี้จะช่วยสร้างปฏิทินจากข้อมูล sheetData
-     * โดยแปลงวันที่รับสินค้าในรูปแบบปีพุทธศักราช (พ.ศ.)
-     * เป็นปีสากล (ค.ศ.) เพื่อนำมาใช้งานกับออบเจ็กต์ Date ของ JavaScript
-     * แล้วสร้างตารางปฏิทินพร้อมรายการสินค้าในแต่ละวัน
-     */
-
-    // แปลงข้อมูล sheetData เป็นแมปของวันที่และรายการสินค้า
+    // Calendar support functions
     function buildEventsMap(data) {
       const events = {};
       data.forEach(item => {
-        const datePart = item.receiveDate.split(' ')[0]; // รูปแบบ YYYY-MM-DD
+        const datePart = item.receiveDate.split(' ')[0];
         const [bYear, month, day] = datePart.split('-');
-        // แปลงปี พ.ศ. เป็น ค.ศ.
         const gYear = parseInt(bYear, 10) - 543;
         const key = `${gYear}-${month}-${day}`;
         if (!events[key]) {
@@ -572,71 +525,51 @@
       return events;
     }
 
-    // สร้างชื่อเดือนภาษาไทย
-    const thaiMonths = [
-      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-    ];
-
-    // ตัวแปรสถานะของปฏิทินปัจจุบัน
-    let currentMonth = new Date().getMonth(); // 0-11
+    const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
     const eventsMap = buildEventsMap(sheetData);
 
-    // ฟังก์ชันแสดงปฏิทินสำหรับเดือนและปีปัจจุบัน
     function renderCalendar() {
       const calendarBody = document.getElementById('calendar-body');
       calendarBody.innerHTML = '';
-      // สร้างอ็อบเจ็กต์วันที่แรกของเดือน
       const firstDay = new Date(currentYear, currentMonth, 1);
-      const startingDay = firstDay.getDay(); // 0 = Sunday
-      // หาจำนวนวันในเดือน
+      const startingDay = firstDay.getDay();
       const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-      // ตั้งค่าชื่อเดือนและปี (ใช้พ.ศ.)
       const monthYearTitle = document.getElementById('month-year-title');
       const buddhistYear = currentYear + 543;
       monthYearTitle.textContent = `${thaiMonths[currentMonth]} ${buddhistYear}`;
 
       let date = 1;
-      // ปฏิทินมี 6 แถวสูงสุด (บางเดือนจะไม่ใช้ทั้งหมด)
       for (let i = 0; i < 6; i++) {
         const row = document.createElement('tr');
         for (let j = 0; j < 7; j++) {
           const cell = document.createElement('td');
-          // ช่องว่างก่อนวันแรกของเดือน
           if (i === 0 && j < startingDay) {
             cell.textContent = '';
           } else if (date > daysInMonth) {
-            // หลังจากวันสุดท้ายของเดือน
             cell.textContent = '';
           } else {
-            // แสดงเลขวัน
             const dayNumber = document.createElement('div');
             dayNumber.className = 'calendar-day-number';
             dayNumber.textContent = date;
             cell.appendChild(dayNumber);
-            // ตรวจสอบว่ามีเหตุการณ์ในวันนี้หรือไม่
             const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
             if (eventsMap[dateKey]) {
               eventsMap[dateKey].forEach(evt => {
-                // สร้างลิงก์ให้ผู้ใช้สามารถคลิกเพื่อดูรายละเอียดสินค้า
                 const eventElem = document.createElement('a');
                 eventElem.className = 'calendar-event';
                 eventElem.href = '#';
-                // ใช้รหัสสินค้าหรือชื่อย่อเป็นข้อความในปฏิทิน
-                // แสดงรหัสสินค้าและจำนวนในปฏิทิน เช่น CAS-100104 (10)
                 eventElem.textContent = `${evt.productCode} (${evt.quantity})`;
-                // เมื่อคลิกที่เหตุการณ์ แสดงรายละเอียดใน events-list
                 eventElem.addEventListener('click', (e) => {
                   e.preventDefault();
-                  e.stopPropagation(); // ป้องกันไม่ให้เหตุการณ์ทะลุถึงเซลล์หลัก
+                  e.stopPropagation();
                   showEventDetails(dateKey);
                 });
                 cell.appendChild(eventElem);
               });
             }
-            // เมื่อคลิกที่เซลล์วัน ให้แสดงรายละเอียดเหตุการณ์ (ถ้ามี)
             cell.addEventListener('click', () => {
               showEventDetails(dateKey);
             });
@@ -645,19 +578,14 @@
           row.appendChild(cell);
         }
         calendarBody.appendChild(row);
-        // ถ้า date เกินจำนวนวันของเดือนและเป็นแถวแรกที่หมด ให้หยุดเพิ่มแถว
-        if (date > daysInMonth) {
-          break;
-        }
+        if (date > daysInMonth) break;
       }
     }
 
-    // แสดงรายละเอียดเหตุการณ์ของวันที่ที่เลือก
     function showEventDetails(dateKey) {
       const eventsList = document.getElementById('events-list');
       eventsList.innerHTML = '';
       if (eventsMap[dateKey]) {
-        // แสดงหัวข้อวันที่ในรูปแบบ พ.ศ.
         const [year, month, day] = dateKey.split('-');
         const buddhistYear = parseInt(year, 10) + 543;
         const heading = document.createElement('h3');
@@ -675,7 +603,6 @@
       }
     }
 
-    // ฟังก์ชันเปลี่ยนเดือน – ลด 1 เดือน
     function prevMonth() {
       currentMonth--;
       if (currentMonth < 0) {
@@ -685,7 +612,6 @@
       renderCalendar();
     }
 
-    // ฟังก์ชันเปลี่ยนเดือน – เพิ่ม 1 เดือน
     function nextMonth() {
       currentMonth++;
       if (currentMonth > 11) {
@@ -695,9 +621,7 @@
       renderCalendar();
     }
 
-    // ===============================================
-    // Purchase data and reorder point calculations
-    // Data from Google Sheet "สินค้าค้างรับ" sheet "data จัดซื้อ"
+    // Reorder point calculation
     const purchaseData = [
       { productCode: 'CAS-022003', productName: 'Copper Washer BSP3/8 #022003', netStock: 4, sales12: 0, bills12: 0, customers12: 0 },
       { productCode: 'CAS-022105', productName: 'Copper Washer M18x1.5 #022105', netStock: 6, sales12: 0, bills12: 0, customers12: 0 },
@@ -729,17 +653,9 @@
       { productCode: 'CAS-100507', productName: 'Straight Connector 12-3/8 BSP # 100507 (L)', netStock: 106, sales12: 52, bills12: 4, customers12: 2 }
     ];
 
-    /**
-     * คำนวณรายการสินค้าที่ควรสั่งซื้อ
-     * ตามเงื่อนไข:
-     * 1. ยอดขาย 12 เดือน / 2
-     * 2. ลบสต็อกสุทธิ หากได้ค่าบวกคือจำนวนที่ควรสั่ง
-     * 3. หากสินค้ามีบิลขายเพียง 1 ใบ และลูกค้าเพียง 1 ราย จะไม่นับยอดขาย (ถือเป็นกรณีพิเศษ)
-     */
     function calculateReorderList() {
       const list = [];
       purchaseData.forEach(item => {
-        // ตรวจสอบข้อ 3: หากมีบิลเดียวและลูกค้าเดียว ให้ไม่นับยอดขาย
         let effectiveSales = item.sales12;
         if (item.bills12 === 1 && item.customers12 === 1) {
           effectiveSales = 0;
@@ -756,7 +672,6 @@
       return list;
     }
 
-    // สร้างตารางแสดงสินค้าที่ควรสั่งซื้อ
     function renderReorderTable() {
       const container = document.getElementById('order-result');
       if (!container) return;
@@ -765,7 +680,7 @@
         container.innerHTML = '<p>ไม่มีสินค้าที่ควรสั่งซื้อ</p>';
         return;
       }
-      let html = '<table class=\"result-table\"><thead><tr><th>#</th><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>สุทธิในสต็อก</th><th>ขาย 12 เดือน</th><th>จำนวนที่ควรสั่งซื้อ</th></tr></thead><tbody>';
+      let html = '<table class="result-table"><thead><tr><th>#</th><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>สุทธิในสต็อก</th><th>ขาย 12 เดือน</th><th>จำนวนที่ควรสั่งซื้อ</th></tr></thead><tbody>';
       list.forEach((item, idx) => {
         html += `<tr>` +
                 `<td>${idx + 1}</td>` +
@@ -780,8 +695,8 @@
       container.innerHTML = html;
     }
 
-    // ตั้งค่าการทำงานของแท็บหลัก (หน้าหลัก) สำหรับค้นหาและจุดสั่งซื้อ
-    window.addEventListener('DOMContentDOMContentLoaded', () => {
+    // Main tab switching
+    window.addEventListener('DOMContentLoaded', () => {
       const mainSearchTab = document.getElementById('main-search-tab');
       const mainOrderTab = document.getElementById('main-order-tab');
       const searchCalendarContainer = document.getElementById('search-calendar-container');
@@ -798,15 +713,13 @@
           mainSearchTab.classList.remove('active');
           if (searchCalendarContainer) searchCalendarContainer.style.display = 'none';
           if (orderSection) orderSection.style.display = 'block';
-          // เมื่อเข้าสู่แท็บจุดสั่งซื้อ ให้คำนวณและแสดงตารางสั่งซื้อ
           renderReorderTable();
         });
       }
     });
 
-    // ตั้งค่าการทำงานของแท็บและปฏิทิน
+    // Search and calendar tab switching
     window.addEventListener('DOMContentLoaded', () => {
-      // กำหนดการสลับแท็บ
       const searchTab = document.getElementById('search-tab');
       const calendarTab = document.getElementById('calendar-tab');
       const searchSection = document.getElementById('search-section');
@@ -814,20 +727,16 @@
       searchTab.addEventListener('click', () => {
         searchTab.classList.add('active');
         calendarTab.classList.remove('active');
-        // แสดงส่วนค้นหาและซ่อนส่วนปฏิทิน
         searchSection.style.display = 'block';
         calendarSection.style.display = 'none';
       });
       calendarTab.addEventListener('click', () => {
         calendarTab.classList.add('active');
         searchTab.classList.remove('active');
-        // แสดงส่วนปฏิทินและซ่อนส่วนค้นหา
         searchSection.style.display = 'none';
         calendarSection.style.display = 'block';
-        // เมื่อเข้ามาที่แท็บปฏิทิน ให้แสดงปฏิทิน
         renderCalendar();
       });
-      // ตั้งค่าปุ่มเลื่อนเดือน
       document.getElementById('prev-month').addEventListener('click', prevMonth);
       document.getElementById('next-month').addEventListener('click', nextMonth);
     });
