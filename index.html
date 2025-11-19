@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ตรวจสอบวันที่รับสินค้า</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 24px;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 0;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input[type="text"] {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 12px;
+      background-color: #f0f8ff;
+      border: 1px solid #b0c4de;
+      border-radius: 4px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ตรวจสอบวันที่รับสินค้า</h1>
+    <p style="text-align:center;">กรุณากรอกข้อมูลสินค้าของคุณเพื่อค้นหาวันที่รับสินค้า</p>
+    <form id="search-form" onsubmit="return false;">
+      <label for="product-code">รหัสสินค้า</label>
+      <input type="text" id="product-code" list="product-code-list" placeholder="เช่น CAS-100104" />
+
+      <label for="product-name">ชื่อสินค้า</label>
+      <input type="text" id="product-name" list="product-name-list" placeholder="เช่น Ring 6 MM" />
+
+      <label for="document-code">รหัสเอกสารสั่งซื้อ</label>
+      <input type="text" id="document-code" placeholder="เช่น PO-987" />
+
+      <button type="button" onclick="searchProduct()">ค้นหา</button>
+    </form>
+    <!-- datalist สำหรับ autofill -->
+    <datalist id="product-code-list"></datalist>
+    <datalist id="product-name-list"></datalist>
+    <div id="result" class="hidden"></div>
+  </div>
+
+  <script>
+    /**
+     * คำสั่งนี้เป็นเพียงตัวอย่างสำหรับการเชื่อมต่อกับข้อมูลใน Google Sheet.
+     * ในการใช้งานจริง คุณจะต้องแก้ไขฟังก์ชัน fetchData() ให้ดึงข้อมูลจาก Google Sheet
+     * ผ่านทาง API หรือบริการอื่น ๆ ที่เหมาะสม
+     */
+
+    // ข้อมูลจาก Google Sheet "สินค้าค้างรับ"
+    // แต่ละรายการประกอบด้วย: รหัสสินค้า, ชื่อสินค้า, วันที่รับ/ส่ง (ปีพุทธศักราช), และเลขที่ PO
+    const sheetData = [
+      { productCode: 'CAS-100104', productName: 'Ring 6 MM # 100104 (L)', receiveDate: '2568-12-12 00:00:00', documentCode: 'POS-1234' },
+      { productCode: 'CAS-100105', productName: 'Ring 8 MM # 100105 (L)', receiveDate: '2568-12-13 00:00:00', documentCode: 'POS-1235' },
+      { productCode: 'CAS-100207', productName: 'Nut 12 MM # 100207 (L)', receiveDate: '2568-12-14 00:00:00', documentCode: 'POS-1236' },
+      { productCode: 'CAS-101807', productName: 'Straight Connector 12-3/8 NPT # 101807 (L)', receiveDate: '2568-12-15 00:00:00', documentCode: 'POS-1237' },
+      { productCode: 'CAS-101824', productName: 'Straight Connector 6-1/4 NPT # 101824 (L)', receiveDate: '2568-12-16 00:00:00', documentCode: 'POS-1238' },
+      { productCode: 'CAS-101832', productName: 'Straight Connector 12-1/2 NPT # 101832 (L)', receiveDate: '2568-12-17 00:00:00', documentCode: 'POS-1239' },
+      { productCode: 'CAS-103505', productName: 'Union 8 MM #103505 ( L )', receiveDate: '2568-12-18 00:00:00', documentCode: 'POS-1240' },
+      { productCode: 'CAS-103520', productName: 'Union 20 MM # 103520 ( S )', receiveDate: '2568-12-19 00:00:00', documentCode: 'POS-1241' },
+      { productCode: 'CAS-103805', productName: 'Union Elbow 8 MM # 103805 ( L )', receiveDate: '2568-12-20 00:00:00', documentCode: 'POS-1242' },
+      { productCode: 'CAS-103806', productName: 'Union Elbow 10 MM # 103806 ( L )', receiveDate: '2568-12-21 00:00:00', documentCode: 'POS-1243' },
+      { productCode: 'CAS-104111', productName: 'REDUCER FITTING 15L/12L #104111', receiveDate: '2568-12-22 00:00:00', documentCode: 'POS-1244' },
+      { productCode: 'CAS-604208', productName: 'ADJ MALE STUD ELBOW 15L #604208', receiveDate: '2568-12-23 00:00:00', documentCode: 'POS-1245' },
+      { productCode: 'CAS-605008', productName: 'ADJ EQUAL TEE 15L #605008', receiveDate: '2568-12-24 00:00:00', documentCode: 'POS-1246' }
+    ];
+
+    // ฟังก์ชันสำหรับค้นหาข้อมูลจาก sheetData
+    function searchProduct() {
+      const code = document.getElementById('product-code').value.trim();
+      const name = document.getElementById('product-name').value.trim();
+      const doc = document.getElementById('document-code').value.trim();
+
+      // ตัวกรองข้อมูล โดยตรวจสอบตามเงื่อนไขที่ผู้ใช้กรอก
+      const result = sheetData.find((item) => {
+        const matchCode = code ? item.productCode.toLowerCase() === code.toLowerCase() : true;
+        const matchName = name ? item.productName.toLowerCase().includes(name.toLowerCase()) : true;
+        const matchDoc = doc ? item.documentCode.toLowerCase() === doc.toLowerCase() : true;
+        return matchCode && matchName && matchDoc;
+      });
+
+      const resultDiv = document.getElementById('result');
+      if (result) {
+        resultDiv.innerHTML = `
+          <h2>พบรายการสินค้า</h2>
+          <p><strong>รหัสสินค้า:</strong> ${result.productCode}</p>
+          <p><strong>ชื่อสินค้า:</strong> ${result.productName}</p>
+          <p><strong>รหัสเอกสารสั่งซื้อ:</strong> ${result.documentCode}</p>
+          <p><strong>วันที่รับสินค้า:</strong> ${formatBuddhistDate(result.receiveDate)}</p>
+        `;
+        resultDiv.classList.remove('hidden');
+      } else {
+        resultDiv.innerHTML = '<p>ไม่พบข้อมูลตามที่ค้นหา กรุณาลองใหม่อีกครั้ง</p>';
+        resultDiv.classList.remove('hidden');
+      }
+    }
+
+    // ฟังก์ชันสำหรับแปลงรูปแบบวันที่จากปีพุทธศักราช (พ.ศ.) เป็นแบบ ก/ด/ป (ค.ศ.)
+    function formatBuddhistDate(dateString) {
+      // dateString มีรูปแบบ "YYYY-MM-DD HH:mm:ss" โดย YYYY เป็นปี พ.ศ.
+      const parts = dateString.split(' ')[0].split('-');
+      let year = parseInt(parts[0], 10);
+      const month = parts[1];
+      const day = parts[2];
+      // แปลงปี พ.ศ. เป็น ค.ศ. โดยลบ 543 ปี
+      year = year - 543;
+      return `${day}/${month}/${year}`;
+    }
+
+    // เติม datalist ของรหัสสินค้าและชื่อสินค้าเพื่อให้เลือกแบบอัตโนมัติ
+    window.addEventListener('DOMContentLoaded', () => {
+      const codeList = document.getElementById('product-code-list');
+      const nameList = document.getElementById('product-name-list');
+      // สร้างรายการรหัสสินค้าไม่ซ้ำ
+      const uniqueCodes = [...new Set(sheetData.map(item => item.productCode))];
+      uniqueCodes.forEach(code => {
+        const option = document.createElement('option');
+        option.value = code;
+        codeList.appendChild(option);
+      });
+      // สร้างรายการชื่อสินค้าไม่ซ้ำ
+      const uniqueNames = [...new Set(sheetData.map(item => item.productName))];
+      uniqueNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        nameList.appendChild(option);
+      });
+    });
+
+    // ฟังก์ชันสำหรับแปลงรูปแบบวันที่ (YYYY-MM-DD → DD/MM/YYYY)
+    function formatDate(dateString) {
+      const [year, month, day] = dateString.split('-');
+      return `${day}/${month}/${year}`;
+    }
+  </script>
+</body>
+</html>
